@@ -1,0 +1,44 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Fix Gradle version
+      run: |
+        sed -i 's/gradle-8.2-bin/gradle-8.2-bin/g' gradle/wrapper/gradle-wrapper.properties
+
+    - name: Fix AGP version
+      run: |
+        sed -i 's/gradle:7.4.2/gradle:8.2.0/g' build.gradle
+
+    - name: Fix Java version
+      run: |
+        sed -i 's/VERSION_1_8/VERSION_17/g' app/build.gradle
+
+    - name: Grant execute permission
+      run: chmod +x gradlew
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: EnvDetector-debug
+        path: app/build/outputs/apk/debug/*.apk
+concurrency: 
