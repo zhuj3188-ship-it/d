@@ -18,17 +18,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Fix Gradle version
-      run: |
-        sed -i 's/gradle-8.2-bin/gradle-8.2-bin/g' gradle/wrapper/gradle-wrapper.properties
-
     - name: Fix AGP version
-      run: |
-        sed -i 's/gradle:7.4.2/gradle:8.2.0/g' build.gradle
+      run: sed -i 's/gradle:7.4.2/gradle:8.2.0/g' build.gradle
 
     - name: Fix Java version
-      run: |
-        sed -i 's/VERSION_1_8/VERSION_17/g' app/build.gradle
+      run: sed -i 's/VERSION_1_8/VERSION_17/g' app/build.gradle
+
+    - name: Fix Gradle wrapper
+      run: sed -i 's/gradle-8.2-bin/gradle-8.2-bin/g' gradle/wrapper/gradle-wrapper.properties
 
     - name: Grant execute permission
       run: chmod +x gradlew
@@ -41,4 +38,3 @@ jobs:
       with:
         name: EnvDetector-debug
         path: app/build/outputs/apk/debug/*.apk
-concurrency: 
