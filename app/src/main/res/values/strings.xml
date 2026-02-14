@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Env Detector</string>
+    <string name="scan">开始检测</string>
+    <string name="scanning">检测中…</string>
+    <string name="no_issues">环境正常</string>
+    <string name="issues_found">发现 %d 个问题</string>
+    <string name="disclaimer_title">免责声明</string>
+    <string name="disclaimer_msg">本应用仅用于检测设备安全环境，所有检测均在本地完成，不上传任何数据。</string>
+    <string name="ok">确定</string>
+</resources>
