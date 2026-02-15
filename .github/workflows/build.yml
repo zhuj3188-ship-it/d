@@ -32,11 +32,13 @@ jobs:
           if [ "$f" != "$clean" ]; then mv -- "$f" "$clean"; fi
         done
 
-    - name: Fix DetectionEngine.java
+    - name: Fix DetectionEngine
       run: |
-        cat > app/src/main/java/com/env/detector/DetectionEngine.java << 'JAVAEOF'
-        package com.env.detector;
-
+        curl -o app/src/main/java/com/env/detector/DetectionEngine.java "https://gist.githubusercontent.com/zhuj3188-ship-it/raw/DetectionEngine.java" || true
+        python3 -c "
+        code = open('app/src/main/java/com/env/detector/DetectionEngine.java','r').read()
+        if 'checkMaps' not in code:
+            s = '''package com.env.detector;
         import android.content.Context;
         import android.content.pm.PackageManager;
         import android.os.Build;
@@ -46,67 +48,48 @@ jobs:
         import java.io.InputStreamReader;
         import java.util.ArrayList;
         import java.util.List;
-
         public class DetectionEngine {
-            private final Context ctx;
-            public DetectionEngine(Context ctx) { this.ctx = ctx; }
-
-            public List<DetectionCategory> runAll() {
-                List<DetectionCategory> r = new ArrayList<>();
-                r.add(detectRoot());
-                r.add(detectBootloader());
-                r.add(detectMagisk());
-                r.add(detectXposed());
-                r.add(detectHook());
-                r.add(detectMount());
-                r.add(detectSELinux());
-                r.add(detectProps());
-                r.add(detectKernel());
-                r.add(detectApps());
-                r.add(detectEmulator());
-                r.add(detectTEE());
-                r.add(detectAbnormalEnv());
-                r.add(deviceInfo());
-                return r;
-            }
-
-            private DetectionCategory detectRoot() {
-                List<DetectionItem> items = new ArrayList<>();
-                String[] paths = {"/system/bin/su","/system/xbin/su","/sbin/su","/data/local/xbin/su","/data/local/bin/su","/data/adb/su"};
-                boolean found = false;
-                StringBuilder sb = new StringBuilder();
-                for (String p : paths) { if (new File(p).exists()) { found = true; sb.append(p).append("\n"); } }
-                items.add(new DetectionItem("SU Binary", found ? "Found" : "Not found", found, found ? sb.toString() : "No su found"));
-                String tags = Build.TAGS;
-                boolean testKeys = tags != null && tags.contains("test-keys");
-                items.add(new DetectionItem("Build Tags", tags != null ? tags : "null", testKeys, "test-keys means modified system"));
-                return new DetectionCategory("Root Detection", items);
-            }
-
-            private DetectionCategory detectBootloader() {
-                List<DetectionItem> items = new ArrayList<>();
-                String locked = getProp("ro.boot.flash.locked");
-                boolean unlocked = !"1".equals(locked);
-                items.add(new DetectionItem("Bootloader", unlocked ? "Unlocked" : "Locked", unlocked, "ro.boot.flash.locked=" + locked));
-                String vb = getProp("ro.boot.verifiedbootstate");
-                boolean abnVb = vb != null && !"green".equalsIgnoreCase(vb);
-                items.add(new DetectionItem("Verified Boot", vb != null ? vb : "Unknown", abnVb, "Normal value is green"));
-                return new DetectionCategory("Bootloader Detection", items);
-            }
-
-            private DetectionCategory detectMagisk() {
-                List<DetectionItem> items = new ArrayList<>();
-                String[] paths = {"/data/adb/magisk","/data/adb/magisk.db","/data/adb/modules","/cache/magisk.log"};
-                boolean found = false;
-                for (String p : paths) { if (new File(p).exists()) { found = true; items.add(new DetectionItem("Path: " + p, "Exists", true, "")); } }
-                String[] pkgs = {"com.topjohnwu.magisk","io.github.huskydg.magisk","io.github.vvb2060.magisk"};
-                for (String pkg : pkgs) { if (isInstalled(pkg)) items.add(new DetectionItem("Pkg: " + pkg, "Installed", true, "")); }
-                if (items.isEmpty()) items.add(new DetectionItem("Magisk", "Not detected", false, ""));
-                return new DetectionCategory("Magisk Detection", items);
-            }
-
-            private DetectionCategory detectXposed() {
-                List<DetectionItem> items = new ArrayList<>();
-                String[] pkgs = {"de.robv.android.xposed.installer","org.lsposed.manager","io.github.lsposed.manager"};
-                boolean found = false;
-                for (String pkg : pkgs) { if (isInstalled(pkg)) { found = true; items.add(new Detection
+        private final Context ctx;
+        public DetectionEngine(Context ctx){this.ctx=ctx;}
+        public List<DetectionCategory> runAll(){
+        List<DetectionCategory> r=new ArrayList<>();
+        r.add(detectRoot());r.add(detectBootloader());r.add(detectMagisk());r.add(detectXposed());
+        r.add(detectHook());r.add(detectMount());r.add(detectSELinux());r.add(detectProps());
+        r.add(detectKernel());r.add(detectApps());r.add(detectEmulator());r.add(detectTEE());
+        r.add(detectAbnormalEnv());r.add(deviceInfo());return r;}
+        private DetectionCategory detectRoot(){
+        List<DetectionItem> items=new ArrayList<>();
+        String[] paths={\"/system/bin/su\",\"/system/xbin/su\",\"/sbin/su\",\"/data/local/xbin/su\",\"/data/local/bin/su\",\"/data/adb/su\"};
+        boolean found=false;StringBuilder sb=new StringBuilder();
+        for(String p:paths){if(new File(p).exists()){found=true;sb.append(p).append(\"\\\\n\");}}
+        items.add(new DetectionItem(\"SU Binary\",found?\"Found\":\"Not found\",found,found?sb.toString():\"No su\"));
+        String tags=Build.TAGS;boolean tk=tags!=null&&tags.contains(\"test-keys\");
+        items.add(new DetectionItem(\"Build Tags\",tags!=null?tags:\"null\",tk,\"test-keys=modified\"));
+        return new DetectionCategory(\"Root Detection\",items);}
+        private DetectionCategory detectBootloader(){
+        List<DetectionItem> items=new ArrayList<>();
+        String locked=getProp(\"ro.boot.flash.locked\");boolean ul=!\"1\".equals(locked);
+        items.add(new DetectionItem(\"Bootloader\",ul?\"Unlocked\":\"Locked\",ul,\"flash.locked=\"+locked));
+        String vb=getProp(\"ro.boot.verifiedbootstate\");boolean ab=vb!=null&&!\"green\".equalsIgnoreCase(vb);
+        items.add(new DetectionItem(\"Verified Boot\",vb!=null?vb:\"Unknown\",ab,\"should be green\"));
+        return new DetectionCategory(\"Bootloader Detection\",items);}
+        private DetectionCategory detectMagisk(){
+        List<DetectionItem> items=new ArrayList<>();
+        String[] paths={\"/data/adb/magisk\",\"/data/adb/magisk.db\",\"/data/adb/modules\",\"/cache/magisk.log\"};
+        boolean f=false;for(String p:paths){if(new File(p).exists()){f=true;items.add(new DetectionItem(\"Path:\"+p,\"Exists\",true,\"\"));}}
+        String[] pkgs={\"com.topjohnwu.magisk\",\"io.github.huskydg.magisk\"};
+        for(String pkg:pkgs){if(isInstalled(pkg))items.add(new DetectionItem(\"Pkg:\"+pkg,\"Installed\",true,\"\"));}
+        if(items.isEmpty())items.add(new DetectionItem(\"Magisk\",\"Not detected\",false,\"\"));
+        return new DetectionCategory(\"Magisk Detection\",items);}
+        private DetectionCategory detectXposed(){
+        List<DetectionItem> items=new ArrayList<>();
+        String[] pkgs={\"de.robv.android.xposed.installer\",\"org.lsposed.manager\"};boolean f=false;
+        for(String pkg:pkgs){if(isInstalled(pkg)){f=true;items.add(new DetectionItem(\"Pkg:\"+pkg,\"Installed\",true,\"\"));}}
+        if(!f)items.add(new DetectionItem(\"Xposed\",\"Not detected\",false,\"\"));
+        return new DetectionCategory(\"Xposed Detection\",items);}
+        private DetectionCategory detectHook(){
+        List<DetectionItem> items=new ArrayList<>();
+        String maps=checkMaps(new String[]{\"frida\",\"substrate\",\"cydia\"});boolean h=!maps.isEmpty();
+        items.add(new DetectionItem(\"Hook\",h?\"Found\":\"Not detected\",h,h?maps:\"\"));
+        return new DetectionCategory(\"Hook Detection\",items);}
+        private Detect
