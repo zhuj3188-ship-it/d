@@ -18,12 +18,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Fix AGP version
-      run: sed -i "s/gradle:7.4.2/gradle:8.2.0/g" build.gradle
-
-    - name: Fix Java version
-      run: sed -i "s/VERSION_1_8/VERSION_17/g" app/build.gradle
-
     - name: Grant execute permission
       run: chmod +x gradlew
 
