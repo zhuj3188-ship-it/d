@@ -18,14 +18,20 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: List all files for debug
+      run: find . -type f | head -100
+
     - name: Fix AGP version
-      run: sed -i 's/gradle:7.4.2/gradle:8.2.0/g' build.gradle
+      run: sed -i "s/gradle:7.4.2/gradle:8.2.0/g" build.gradle
 
     - name: Fix Java version
-      run: sed -i 's/VERSION_1_8/VERSION_17/g' app/build.gradle
+      run: sed -i "s/VERSION_1_8/VERSION_17/g" app/build.gradle
 
-    - name: Fix Gradle wrapper
-      run: sed -i 's/gradle-8.2-bin/gradle-8.2-bin/g' gradle/wrapper/gradle-wrapper.properties
+    - name: Fix drawable file extensions
+      run: |
+        cd app/src/main/res/drawable/
+        for f in *.xm; do [ -f "$f" ] && mv "$f" "${f}l"; done
+        for f in *; do echo "$f"; done
 
     - name: Grant execute permission
       run: chmod +x gradlew
