@@ -18,26 +18,15 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Debug drawable filenames
+    - name: Fix filename with trailing space
       run: |
         cd app/src/main/res/drawable/
-        ls -la
-        for f in *; do echo "FILE: [$f] HEX:"; echo -n "$f" | xxd | head -2; done
-
-    - name: Fix drawable files
-      run: |
-        cd app/src/main/res/drawable/
-        for f in *header*; do
-          clean=$(echo "$f" | tr -cd 'a-z_.' )
-          if [ "$f" != "$clean" ]; then mv "$f" "$clean"; fi
-        done
-        for f in *card*; do
-          clean=$(echo "$f" | tr -cd 'a-z_.' )
-          if [ "$f" != "$clean" ]; then mv "$f" "$clean"; fi
-        done
-        for f in *button*; do
-          clean=$(echo "$f" | tr -cd 'a-z_.' )
-          if [ "$f" != "$clean" ]; then mv "$f" "$clean"; fi
+        for f in *; do
+          clean=$(echo "$f" | sed 's/[[:space:]]*$//')
+          if [ "$f" != "$clean" ]; then
+            mv -- "$f" "$clean"
+            echo "Renamed [$f] -> [$clean]"
+          fi
         done
         ls -la
 
