@@ -18,20 +18,34 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: List all files for debug
-      run: find . -type f | head -100
+    - name: Debug drawable filenames
+      run: |
+        cd app/src/main/res/drawable/
+        ls -la
+        for f in *; do echo "FILE: [$f] HEX:"; echo -n "$f" | xxd | head -2; done
+
+    - name: Fix drawable files
+      run: |
+        cd app/src/main/res/drawable/
+        for f in *header*; do
+          clean=$(echo "$f" | tr -cd 'a-z_.' )
+          if [ "$f" != "$clean" ]; then mv "$f" "$clean"; fi
+        done
+        for f in *card*; do
+          clean=$(echo "$f" | tr -cd 'a-z_.' )
+          if [ "$f" != "$clean" ]; then mv "$f" "$clean"; fi
+        done
+        for f in *button*; do
+          clean=$(echo "$f" | tr -cd 'a-z_.' )
+          if [ "$f" != "$clean" ]; then mv "$f" "$clean"; fi
+        done
+        ls -la
 
     - name: Fix AGP version
       run: sed -i "s/gradle:7.4.2/gradle:8.2.0/g" build.gradle
 
     - name: Fix Java version
       run: sed -i "s/VERSION_1_8/VERSION_17/g" app/build.gradle
-
-    - name: Fix drawable file extensions
-      run: |
-        cd app/src/main/res/drawable/
-        for f in *.xm; do [ -f "$f" ] && mv "$f" "${f}l"; done
-        for f in *; do echo "$f"; done
 
     - name: Grant execute permission
       run: chmod +x gradlew
